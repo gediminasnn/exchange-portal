@@ -9,7 +9,8 @@ import lombok.NoArgsConstructor;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
-import java.sql.Date;
+import java.time.LocalDate;
+import org.springframework.format.annotation.DateTimeFormat;
 
 @Data
 @NoArgsConstructor
@@ -26,6 +27,7 @@ public class ExchangeRate {
 	@NotNull(message = "Rate cannot be null")
 	private double rate;
 
+	@DateTimeFormat(pattern = "yyyy-MM-dd")
 	@NotNull(message = "Date cannot be empty")
-	private Date date;
+	private LocalDate date;
 }

@@ -13,7 +13,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.xml.sax.SAXException;
 
 import java.io.IOException;
-import java.sql.Date;
+import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.List;
 
@@ -41,9 +41,11 @@ public class ExchangeRateServiceTest {
 	public void testFetchAndSaveExchangeRatesFromApi()
 			throws IOException, InterruptedException, SAXException, ParserConfigurationException {
 		String xmlData = "<sampleXml>Some XML data</sampleXml>";
+		LocalDate date = LocalDate.parse("2024-05-12");
+		
 		List<ExchangeRate> rates = Arrays.asList(
-				new ExchangeRate(null, "USD", 1.23, Date.valueOf("2024-05-12")),
-				new ExchangeRate(null, "EUR", 0.85, Date.valueOf("2024-05-12")));
+				new ExchangeRate(null, "USD", 1.23, date),
+				new ExchangeRate(null, "EUR", 0.85, date));
 
 		when(exchangeRateProvider.fetchXmlDataFromApi()).thenReturn(xmlData);
 		when(exchangeRateParser.parse(xmlData)).thenReturn(rates);

@@ -1,7 +1,7 @@
 package com.example.exchangeportal.service.parser;
 
 import java.io.IOException;
-import java.sql.Date;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -35,14 +35,15 @@ public class ExchangeRateXmlParser {
 		NodeList nodeList = document.getElementsByTagName("FxRate");
 		for (int i = 0; i < nodeList.getLength(); i++) {
 			Element element = (Element) nodeList.item(i);
-			String date = element.getElementsByTagName("Dt").item(0).getTextContent();
-			NodeList ccyAmtList = element.getElementsByTagName("CcyAmt");
+			String dateString = element.getElementsByTagName("Dt").item(0).getTextContent();
+			LocalDate date = LocalDate.parse(dateString);
 
+			NodeList ccyAmtList = element.getElementsByTagName("CcyAmt");
 			String targetCurrency = ((Element) ccyAmtList.item(1)).getElementsByTagName("Ccy").item(0).getTextContent();
 			double targetAmount = Double
 					.parseDouble(((Element) ccyAmtList.item(1)).getElementsByTagName("Amt").item(0).getTextContent());
 
-			ExchangeRate rate = new ExchangeRate(null, targetCurrency, targetAmount, Date.valueOf(date));
+			ExchangeRate rate = new ExchangeRate(null, targetCurrency, targetAmount, date);
 			exchangeRates.add(rate);
 		}
 		return exchangeRates;
