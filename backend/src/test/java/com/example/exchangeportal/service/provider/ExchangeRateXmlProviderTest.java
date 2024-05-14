@@ -14,25 +14,23 @@ import java.net.http.HttpResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import org.junit.jupiter.api.extension.ExtendWith;
 
 @ExtendWith(MockitoExtension.class)
-public class LatestExchangeRateXmlProviderTest {
+public class ExchangeRateXmlProviderTest {
 	@Mock
 	private HttpClient mockHttpClient;
 
 	@Mock
 	private HttpResponse<String> mockHttpResponse;
 
-	private LatestExchangeRateXmlProvider latestExchangeRateXmlProvider;
+	private ExchangeRateXmlProvider latestExchangeRateXmlProvider;
 
 	@BeforeEach
 	public void setup() {
-		MockitoAnnotations.openMocks(this);
-		latestExchangeRateXmlProvider = new LatestExchangeRateXmlProvider(mockHttpClient);
+		latestExchangeRateXmlProvider = new ExchangeRateXmlProvider(mockHttpClient);
 	}
 
 	@Test

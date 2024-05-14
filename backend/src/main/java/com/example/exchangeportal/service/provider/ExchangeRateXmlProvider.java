@@ -9,16 +9,16 @@ import java.net.http.HttpResponse;
 import org.springframework.stereotype.Component;
 
 @Component
-public class LatestExchangeRateXmlProvider {
+public class ExchangeRateXmlProvider {
 	public HttpClient httpClient;
 
 	private static final String GET_CURRENT_FX_RATES_API_URL = "https://www.lb.lt/webservices/FxRates/FxRates.asmx/getCurrentFxRates?tp=EU";
 
-	public LatestExchangeRateXmlProvider() {
+	public ExchangeRateXmlProvider() {
 		this.httpClient = HttpClient.newHttpClient();
 	}
 
-	public LatestExchangeRateXmlProvider(HttpClient httpClient) {
+	public ExchangeRateXmlProvider(HttpClient httpClient) {
 		this.httpClient = httpClient;
 	}
 

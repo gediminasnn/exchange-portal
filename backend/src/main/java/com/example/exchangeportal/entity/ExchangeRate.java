@@ -3,10 +3,11 @@ package com.example.exchangeportal.entity;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
 import java.time.LocalDate;
@@ -21,8 +22,9 @@ public class ExchangeRate {
 	@GeneratedValue
 	private Long id;
 
-	@NotBlank(message = "Currency code cannot be empty")
-	private String currencyCode;
+	@ManyToOne
+	@JoinColumn(name = "currency_id", nullable = false)
+	private Currency currency;
 
 	@NotNull(message = "Rate cannot be null")
 	private double rate;

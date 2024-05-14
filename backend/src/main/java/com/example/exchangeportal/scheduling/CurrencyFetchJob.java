@@ -13,21 +13,21 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.xml.sax.SAXException;
 
-import com.example.exchangeportal.service.ExchangeRateService;
+import com.example.exchangeportal.service.CurrencyService;
 
 @Component
-public class ExchangeRateFetchJob implements Job {
-	private static final Logger logger = LoggerFactory.getLogger(ExchangeRateFetchJob.class);
+public class CurrencyFetchJob implements Job {
+	private static final Logger logger = LoggerFactory.getLogger(CurrencyFetchJob.class);
 
 	@Autowired
-	private ExchangeRateService exchangeRateService;
+	private CurrencyService currencyService;
 
 	@Override
 	public void execute(JobExecutionContext context) throws JobExecutionException {
 		try {
-			logger.info("Exchange rates fetching started successfully");
-			exchangeRateService.fetchAndSaveExchangeRatesFromApi();
-			logger.info("Exchange rates fetching finished successfully");
+			logger.info("Currencies fetching started successfully");
+			currencyService.fetchAndSaveCurrenciesFromApi();
+			logger.info("Currencies fetched finished successfully");
 		} catch (IOException | InterruptedException | SAXException | ParserConfigurationException e) {
 			logger.error(e.getMessage(), e);
 		}

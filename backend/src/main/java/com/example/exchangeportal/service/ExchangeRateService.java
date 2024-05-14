@@ -12,7 +12,7 @@ import org.xml.sax.SAXException;
 import com.example.exchangeportal.entity.ExchangeRate;
 import com.example.exchangeportal.repository.ExchangeRateRepository;
 import com.example.exchangeportal.service.parser.ExchangeRateXmlParser;
-import com.example.exchangeportal.service.provider.LatestExchangeRateXmlProvider;
+import com.example.exchangeportal.service.provider.ExchangeRateXmlProvider;
 
 @Service
 public class ExchangeRateService {
@@ -20,15 +20,15 @@ public class ExchangeRateService {
 	private ExchangeRateRepository exchangeRateRepository;
 
 	@Autowired
-	private LatestExchangeRateXmlProvider exchangeRateProvider;
+	private ExchangeRateXmlProvider exchangeRateProvider;
 
 	@Autowired
-	private ExchangeRateXmlParser exchangeRateParser;
+	private ExchangeRateXmlParser exchangeRateXmlParser;
 
 	public void fetchAndSaveExchangeRatesFromApi()
 			throws IOException, InterruptedException, SAXException, ParserConfigurationException {
 		String xmlData = exchangeRateProvider.fetchXmlDataFromApi();
-		List<ExchangeRate> exchangeRates = exchangeRateParser.parse(xmlData);
+		List<ExchangeRate> exchangeRates = exchangeRateXmlParser.parse(xmlData);
 		exchangeRateRepository.saveAll(exchangeRates);
 	}
 }

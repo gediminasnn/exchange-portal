@@ -1,40 +1,40 @@
 package com.example.exchangeportal.service.parser;
 
-import org.junit.jupiter.api.Test;
-import org.xml.sax.SAXException;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
+import com.example.exchangeportal.entity.Currency;
 import com.example.exchangeportal.entity.ExchangeRate;
-
-import java.io.IOException;
+import com.example.exchangeportal.repository.CurrencyRepository;
 import java.time.LocalDate;
 import java.util.List;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-import javax.xml.parsers.ParserConfigurationException;
-
-import static org.junit.jupiter.api.Assertions.*;
-
+@ExtendWith(MockitoExtension.class)
 class ExchangeRateXmlParserTest {
 
-	private ExchangeRateXmlParser parser = new ExchangeRateXmlParser();
+	@Mock
+	private CurrencyRepository currencyRepository;
+
+	@InjectMocks
+	private ExchangeRateXmlParser parser;
 
 	@Test
-	void testParseValidXML() throws SAXException, IOException, ParserConfigurationException {
-		String xmlData = "<FxRates><FxRate><Dt>2024-05-10</Dt><CcyAmt><Ccy>EUR</Ccy><Amt>1</Amt></CcyAmt><CcyAmt><Ccy>USD</Ccy><Amt>1.05</Amt></CcyAmt></FxRate></FxRates>";
+	void testParse_Success() throws Exception {
 		LocalDate date = LocalDate.parse("2024-05-10");
-		List<ExchangeRate> result = parser.parse(xmlData);
-		assertFalse(result.isEmpty());
-		assertEquals(1, result.size());
-		assertEquals("USD", result.get(0).getCurrencyCode());
-		assertEquals(1.05, result.get(0).getRate());
-		assertEquals(date, result.get(0).getDate());
-	}
+		Currency currencyUSD = new Currency(1L, "USD", "United States dollar", 2);
+		Currency currencyJPY = new Currency(2L, "JPY", "Japanese yen", 0);
+		when(currencyRepository.findByCodeIn(List.of("USD", "JPY")))
+				.thenReturn(List.of(currencyUSD, currencyJPY));
 
-	@Test
-	void testParseMultipleFxRates() throws SAXException, IOException, ParserConfigurationException {
-		String multipleRatesXml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+		String VALID_XML = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
 				"<FxRates xmlns:xsi=\"http://www.w3.org/2021/XMLSchema-instance\" xsi:noNamespaceSchemaLocation=\"FxRatesSchema.xsd\">\n"
 				+
-				"  <FxRate>\n" + // First FxRate
+				"  <FxRate>\n" +
 				"    <Tp>LT</Tp>\n" +
 				"    <Dt>2024-05-10</Dt>\n" +
 				"    <CcyAmt>\n" +
@@ -46,7 +46,7 @@ class ExchangeRateXmlParserTest {
 				"      <Amt>1.0926</Amt>\n" +
 				"    </CcyAmt>\n" +
 				"  </FxRate>\n" +
-				"  <FxRate>\n" + // Second FxRate
+				"  <FxRate>\n" +
 				"    <Tp>LT</Tp>\n" +
 				"    <Dt>2024-05-10</Dt>\n" +
 				"    <CcyAmt>\n" +
@@ -59,30 +59,38 @@ class ExchangeRateXmlParserTest {
 				"    </CcyAmt>\n" +
 				"  </FxRate>\n" +
 				"</FxRates>";
-		LocalDate date = LocalDate.parse("2024-05-10");
-		List<ExchangeRate> exchangeRates = parser.parse(multipleRatesXml);
+
+		List<ExchangeRate> exchangeRates = parser.parse(VALID_XML);
 
 		assertEquals(2, exchangeRates.size());
+		ExchangeRate rateUSD = exchangeRates.get(0);
+		assertNull(rateUSD.getId());
+		assertEquals(currencyUSD, rateUSD.getCurrency());
+		assertEquals(1.0926, rateUSD.getRate());
+		assertEquals(date, rateUSD.getDate());
 
-		// Assertions for the first FxRate element
-		ExchangeRate rate1 = exchangeRates.get(0);
-		assertNull(rate1.getId());
-		assertEquals("USD", rate1.getCurrencyCode());
-		assertEquals(1.0926, rate1.getRate());
-		assertEquals(date, rate1.getDate());
-
-		// Assertions for the second FxRate element
-		ExchangeRate rate2 = exchangeRates.get(1);
-		assertNull(rate2.getId());
-		assertEquals("JPY", rate2.getCurrencyCode());
-		assertEquals(142.75, rate2.getRate());
-		assertEquals(date, rate2.getDate());
+		ExchangeRate rateJPY = exchangeRates.get(1);
+		assertNull(rateJPY.getId());
+		assertEquals(currencyJPY, rateJPY.getCurrency());
+		assertEquals(142.75, rateJPY.getRate());
+		assertEquals(date, rateJPY.getDate());
 	}
 
 	@Test
-	void testParseEmptyXML() throws SAXException, IOException, ParserConfigurationException {
-		String xmlData = "<FxRates></FxRates>";
-		List<ExchangeRate> result = parser.parse(xmlData);
-		assertTrue(result.isEmpty());
+	void testParse_NonExistingCurrencyCode() throws Exception {
+		String NON_EXISTING_CURRENCY_CODE = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+				"<FxRates xmlns:xsi=\"http://www.w3.org/2021/XMLSchema-instance\" xsi:noNamespaceSchemaLocation=\"FxRatesSchema.xsd\">\n"
+				+
+				"  <FxRate>\n" +
+				"    <Tp>LT</Tp>\n" +
+				"    <Dt>2024-05-10</Dt>\n" +
+				"    <CcyAmt>\n" +
+				"      <Ccy>XYZ</Ccy>\n" + // Non-existent currency code
+				"      <Amt>1.0000</Amt>\n" +
+				"    </CcyAmt>\n" +
+				"  </FxRate>\n" +
+				"</FxRates>";
+
+		assertThrows(RuntimeException.class, () -> parser.parse(NON_EXISTING_CURRENCY_CODE));
 	}
 }
