@@ -1,5 +1,8 @@
 <nav class="navbar navbar-expand bg-light">
-  <a class="navbar-brand" href="#">Exchange Portal</a>
-    <ul ngbNav class="navbar-nav">
-    </ul>
+  <a class="navbar-brand" routerLink="/exchange-rates/" (click)="nav.select(1)">Exchange Portal</a>
+  <ul ngbNav #nav="ngbNav" class="navbar-nav">
+    <li [ngbNavItem]="1">
+      <a ngbNavLink routerLink="/exchange-rates/" [fragment]="">Rates</a>
+    </li>
+  </ul>
 </nav>

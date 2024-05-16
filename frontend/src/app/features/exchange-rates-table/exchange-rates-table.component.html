@@ -1,0 +1,18 @@
+<table class="table table-striped">
+  <thead>
+    <tr>
+      <th scope="col">Currency</th>
+      <th scope="col">Rate (EUR)</th>
+      <th scope="col">Date</th>
+      <th scope="col">History</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr *ngFor="let rate of exchangeRates">
+      <td>{{ rate.currency.name }}</td>
+      <td>{{ rate.rate }}</td>
+      <td>{{ rate.date }}</td>
+      <td>Link</td>
+    </tr>
+  </tbody>
+</table>

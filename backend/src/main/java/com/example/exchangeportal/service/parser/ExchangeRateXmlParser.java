@@ -20,6 +20,7 @@ import org.xml.sax.SAXException;
 
 import com.example.exchangeportal.entity.Currency;
 import com.example.exchangeportal.entity.ExchangeRate;
+import com.example.exchangeportal.exception.FailedParsingException;
 import com.example.exchangeportal.repository.CurrencyRepository;
 
 @Component
@@ -27,7 +28,11 @@ public class ExchangeRateXmlParser {
     @Autowired
     private CurrencyRepository currencyRepository;
 
-    public List<ExchangeRate> parse(String xmlData) throws SAXException, IOException, ParserConfigurationException {
+    public ExchangeRateXmlParser(CurrencyRepository currencyRepository) {
+        this.currencyRepository = currencyRepository;
+    }
+
+    public List<ExchangeRate> parseAll(String xmlData) throws FailedParsingException {
         Document document = parseXmlData(xmlData);
         NodeList nodeList = document.getElementsByTagName("FxRate");
         List<String> currencyCodes = extractCurrencyCodes(nodeList);
@@ -35,10 +40,20 @@ public class ExchangeRateXmlParser {
         return createExchangeRates(nodeList, currencyMap);
     }
 
-    private Document parseXmlData(String xmlData) throws ParserConfigurationException, SAXException, IOException {
+    private Document parseXmlData(String xmlData) throws FailedParsingException {
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-        DocumentBuilder builder = factory.newDocumentBuilder();
-        return builder.parse(new java.io.ByteArrayInputStream(xmlData.getBytes()));
+        DocumentBuilder builder;
+        try {
+            builder = factory.newDocumentBuilder();
+        } catch (ParserConfigurationException e) {
+            throw new RuntimeException("Error while configuring xml parser", e);
+        }
+
+        try {
+            return builder.parse(new java.io.ByteArrayInputStream(xmlData.getBytes()));
+        } catch (SAXException | IOException e) {
+            throw new FailedParsingException("Error occurred while parsing the xml data.", e);
+        }
     }
 
     private List<String> extractCurrencyCodes(NodeList nodeList) {
@@ -55,7 +70,7 @@ public class ExchangeRateXmlParser {
     }
 
     private Map<String, Currency> fetchCurrencies(List<String> currencyCodes) {
-        List<Currency> currencies = currencyRepository.findByCodeIn(currencyCodes);
+        List<Currency> currencies = currencyRepository.findAllByCodeIn(currencyCodes);
         return currencies.stream().collect(Collectors.toMap(Currency::getCode, currency -> currency));
     }
 
@@ -83,6 +98,11 @@ public class ExchangeRateXmlParser {
             throw new RuntimeException("Currency not found for code: " + currencyCode);
         }
 
-        return new ExchangeRate(null, currency, rateAmount, date);
+        return ExchangeRate
+                .builder()
+                .currency(currency)
+                .rate(rateAmount)
+                .date(date)
+                .build();
     }
 }

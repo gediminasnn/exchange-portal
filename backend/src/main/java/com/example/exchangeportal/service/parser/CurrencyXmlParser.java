@@ -14,21 +14,32 @@ import java.util.List;
 import org.xml.sax.SAXException;
 
 import com.example.exchangeportal.entity.Currency;
+import com.example.exchangeportal.exception.FailedParsingException;
 
 @Component
 public class CurrencyXmlParser {
 
-    public List<Currency> parse(String xmlData) throws ParserConfigurationException, SAXException, IOException {
+    public List<Currency> parseAll(String xmlData) throws FailedParsingException {
         Document document = buildDocumentFromXml(xmlData);
         return extractCurrencies(document);
     }
 
-    protected Document buildDocumentFromXml(String xmlData)
-            throws ParserConfigurationException, SAXException, IOException {
+    protected Document buildDocumentFromXml(String xmlData) throws FailedParsingException {
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-        DocumentBuilder builder = factory.newDocumentBuilder();
-        ByteArrayInputStream input = new ByteArrayInputStream(xmlData.getBytes());
-        Document document = builder.parse(input);
+        DocumentBuilder builder;
+
+        try {
+            builder = factory.newDocumentBuilder();
+        } catch (ParserConfigurationException e) {
+            throw new RuntimeException("Error while configuring xml parser", e);
+        }
+
+        Document document;
+        try {
+            document = builder.parse(new ByteArrayInputStream(xmlData.getBytes()));
+        } catch (SAXException | IOException e) {
+            throw new FailedParsingException("Error occurred while parsing the xml data.", e);
+        }
         document.getDocumentElement().normalize();
         return document;
     }
@@ -48,6 +59,10 @@ public class CurrencyXmlParser {
         String name = element.getElementsByTagName("CcyNm").item(1).getTextContent();
         int minorUnits = Integer.parseInt(element.getElementsByTagName("CcyMnrUnts").item(0).getTextContent());
 
-        return new Currency(null, code, name, minorUnits);
+        return Currency.builder()
+                .code(code)
+                .name(name)
+                .minorUnits(minorUnits)
+                .build();
     }
 }

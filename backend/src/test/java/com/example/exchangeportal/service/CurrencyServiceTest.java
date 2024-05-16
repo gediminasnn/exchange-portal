@@ -3,11 +3,8 @@ package com.example.exchangeportal.service;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
-
-import javax.xml.parsers.ParserConfigurationException;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -15,24 +12,27 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.xml.sax.SAXException;
-
 import com.example.exchangeportal.entity.Currency;
+import com.example.exchangeportal.exception.ApiException;
+import com.example.exchangeportal.exception.BadApiResponseException;
+import com.example.exchangeportal.exception.BadHttpClientRequestException;
+import com.example.exchangeportal.exception.FailedParsingException;
+import com.example.exchangeportal.exception.ParsingException;
 import com.example.exchangeportal.repository.CurrencyRepository;
 import com.example.exchangeportal.service.parser.CurrencyXmlParser;
-import com.example.exchangeportal.service.provider.CurrencyXmlProvider;
+import com.example.exchangeportal.service.provider.CurrencyProvider;
 
 @SpringBootTest
 public class CurrencyServiceTest {
 
     @Mock
-    private CurrencyRepository currencyRepository;
+    private CurrencyRepository mockCurrencyRepository;
 
     @Mock
-    private CurrencyXmlProvider currencyProvider;
+    private CurrencyProvider mockCurrencyProvider;
 
     @Mock
-    private CurrencyXmlParser currencyXmlParser;
+    private CurrencyXmlParser mockCurrencyXmlParser;
 
     @InjectMocks
     private CurrencyService currencyService;
@@ -44,31 +44,58 @@ public class CurrencyServiceTest {
 
     @Test
     void fetchAndSaveCurrenciesFromApi_Success()
-            throws IOException, SAXException, ParserConfigurationException, InterruptedException {
-        String xmlData = "<sampleXml>Some XML data</sampleXml>";
-        List<Currency> currencies = Arrays.asList(new Currency(1L, "USD", "US Dollar", 2));
+            throws ApiException, ParsingException {
+        List<Currency> currencies = Arrays.asList(Currency.builder()
+                .id(1L)
+                .code("USD")
+                .name("US Dollar")
+                .minorUnits(2)
+                .build());
 
-        when(currencyProvider.fetchCurrencyListXml()).thenReturn(xmlData);
-        when(currencyXmlParser.parse(xmlData)).thenReturn(currencies);
+        when(mockCurrencyProvider.fetchAll()).thenReturn(currencies);
 
         currencyService.fetchAndSaveCurrenciesFromApi();
 
-        verify(currencyProvider).fetchCurrencyListXml();
-        verify(currencyXmlParser).parse(xmlData);
-        verify(currencyRepository).saveAll(currencies);
+        verify(mockCurrencyProvider).fetchAll();
+        verify(mockCurrencyRepository).saveAll(currencies);
     }
 
     @Test
-    void fetchAndSaveCurrenciesFromApi_ExceptionThrown()
-            throws IOException, SAXException, ParserConfigurationException, InterruptedException {
-        when(currencyProvider.fetchCurrencyListXml()).thenThrow(new IOException());
+    void fetchAndSaveCurrenciesFromApi_BadHttpClientRequestExceptionThrown()
+            throws BadHttpClientRequestException, BadApiResponseException, FailedParsingException {
+        when(mockCurrencyProvider.fetchAll()).thenThrow(new BadHttpClientRequestException());
 
-        assertThrows(IOException.class, () -> {
+        assertThrows(BadHttpClientRequestException.class, () -> {
             currencyService.fetchAndSaveCurrenciesFromApi();
         });
 
-        verify(currencyProvider).fetchCurrencyListXml();
-        verifyNoInteractions(currencyXmlParser);
-        verifyNoInteractions(currencyRepository);
+        verify(mockCurrencyProvider).fetchAll();
+        verifyNoInteractions(mockCurrencyRepository);
+    }
+
+    @Test
+    void fetchAndSaveCurrenciesFromApi_BadApiResponseExceptionThrown()
+            throws BadHttpClientRequestException, BadApiResponseException, FailedParsingException {
+        when(mockCurrencyProvider.fetchAll()).thenThrow(new BadApiResponseException());
+
+        assertThrows(BadApiResponseException.class, () -> {
+            currencyService.fetchAndSaveCurrenciesFromApi();
+        });
+
+        verify(mockCurrencyProvider).fetchAll();
+        verifyNoInteractions(mockCurrencyRepository);
+    }
+
+    @Test
+    void fetchAndSaveCurrenciesFromApi_FailedParsingExceptionThrown()
+            throws BadHttpClientRequestException, BadApiResponseException, FailedParsingException {
+        when(mockCurrencyProvider.fetchAll()).thenThrow(new FailedParsingException());
+
+        assertThrows(FailedParsingException.class, () -> {
+            currencyService.fetchAndSaveCurrenciesFromApi();
+        });
+
+        verify(mockCurrencyProvider).fetchAll();
+        verifyNoInteractions(mockCurrencyRepository);
     }
 }

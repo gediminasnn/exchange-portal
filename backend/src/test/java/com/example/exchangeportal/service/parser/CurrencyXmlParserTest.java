@@ -1,23 +1,24 @@
 package com.example.exchangeportal.service.parser;
 
 import com.example.exchangeportal.entity.Currency;
-import org.junit.jupiter.api.Test;
-import org.w3c.dom.Document;
-import org.xml.sax.SAXException;
+import com.example.exchangeportal.exception.FailedParsingException;
 
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.xpath.XPathExpressionException;
-import java.io.IOException;
-import java.util.List;
+import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.util.List;
+
 class CurrencyXmlParserTest {
 
-    private final CurrencyXmlParser parser = new CurrencyXmlParser();
+    private final CurrencyXmlParser currencyXmlParser;
+
+    public CurrencyXmlParserTest() {
+        currencyXmlParser = new CurrencyXmlParser();
+    }
 
     @Test
-    void testParse_Success() throws ParserConfigurationException, IOException, SAXException, XPathExpressionException {
+    void testParseAll_Success() throws FailedParsingException {
         String validXml = """
                 <CcyTbl xmlns="http://www.lb.lt/WebServices/FxRates">
                     <CcyNtry>
@@ -27,15 +28,21 @@ class CurrencyXmlParserTest {
                         <CcyNbr>784</CcyNbr>
                         <CcyMnrUnts>2</CcyMnrUnts>
                     </CcyNtry>
+                    <CcyNtry>
+                        <Ccy>AFN</Ccy>
+                        <CcyNm lang="LT">Afganistano afganis</CcyNm>
+                        <CcyNm lang="EN">Afghani</CcyNm>
+                        <CcyNbr>971</CcyNbr>
+                        <CcyMnrUnts>2</CcyMnrUnts>
+                    </CcyNtry>
                 </CcyTbl>
                 """;
 
-        Document document = parser.buildDocumentFromXml(validXml);
-        List<Currency> currencies = parser.extractCurrencies(document);
+        List<Currency> expectedCurrencies = List.of(
+                Currency.builder().code("AED").name("UAE dirham").minorUnits(2).build(),
+                Currency.builder().code("AFN").name("Afghani").minorUnits(2).build());
 
-        assertFalse(currencies.isEmpty());
-        assertEquals("AED", currencies.get(0).getCode());
-        assertEquals("UAE dirham", currencies.get(0).getName());
-        assertEquals(2, currencies.get(0).getMinorUnits());
+        List<Currency> actualCurrencies = currencyXmlParser.parseAll(validXml);
+        assertEquals(expectedCurrencies, actualCurrencies);
     }
 }
