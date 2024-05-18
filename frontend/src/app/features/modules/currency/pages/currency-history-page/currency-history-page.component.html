@@ -1,0 +1,6 @@
+<div class="row justify-content-start">
+  <div class="mt-2 col-sm-8 col-md-6 col-lg-4">
+    <ngbd-datepicker-range-popup (toDateChange)="onToDateChange($event)" (fromDateChange)="onFromDateChange($event)" />
+  </div>
+</div>
+<currency-history-chart [currency]="currency" />

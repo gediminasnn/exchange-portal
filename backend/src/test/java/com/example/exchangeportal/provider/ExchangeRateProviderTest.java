@@ -1,4 +1,4 @@
-package com.example.exchangeportal.service.provider;
+package com.example.exchangeportal.provider;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -23,8 +23,8 @@ import com.example.exchangeportal.entity.ExchangeRate;
 import com.example.exchangeportal.exception.BadApiResponseException;
 import com.example.exchangeportal.exception.BadHttpClientRequestException;
 import com.example.exchangeportal.exception.FailedParsingException;
+import com.example.exchangeportal.parser.ExchangeRateXmlParser;
 import com.example.exchangeportal.repository.CurrencyRepository;
-import com.example.exchangeportal.service.parser.ExchangeRateXmlParser;
 
 import org.junit.jupiter.api.extension.ExtendWith;
 
@@ -123,11 +123,10 @@ public class ExchangeRateProviderTest {
     }
 
     @Test
-    public void testFetchAll_EmptyResponseBody() throws Exception {
+    public void testFetchAllByDate_Non200Response() throws Exception {
         when(mockHttpClient.send(any(HttpRequest.class), eq(HttpResponse.BodyHandlers.ofString())))
                 .thenReturn(mockHttpResponse);
-        when(mockHttpResponse.statusCode()).thenReturn(200);
-        when(mockHttpResponse.body()).thenReturn("");
+        when(mockHttpResponse.statusCode()).thenReturn(500);
 
         assertThrows(BadApiResponseException.class, () -> {
             exchangeRateProvider.fetchAllByDate(LocalDate.now());
@@ -135,13 +134,89 @@ public class ExchangeRateProviderTest {
     }
 
     @Test
-    public void testFetchAll_Non200Response() throws Exception {
+    void testFetchAllForCurrencyByDateBetween_Success()
+            throws IOException, InterruptedException, BadHttpClientRequestException,
+            BadApiResponseException, FailedParsingException {
+        LocalDate fromDate = LocalDate.of(2024, 5, 1);
+        LocalDate toDate = LocalDate.of(2024, 5, 10);
+        Currency currency = Currency.builder()
+                .id(1L)
+                .code("USD")
+                .name("United States dollar")
+                .minorUnits(2)
+                .build();
+        String xmlResponse = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+                "<FxRates xmlns:xsi=\"http://www.w3.org/2021/XMLSchema-instance\" xsi:noNamespaceSchemaLocation=\"FxRatesSchema.xsd\">\n"
+                +
+                "  <FxRate>\n" +
+                "    <Tp>LT</Tp>\n" +
+                "    <Dt>2024-05-01</Dt>\n" +
+                "    <CcyAmt>\n" +
+                "      <Ccy>EUR</Ccy>\n" +
+                "      <Amt>1.0000</Amt>\n" +
+                "    </CcyAmt>\n" +
+                "    <CcyAmt>\n" +
+                "      <Ccy>USD</Ccy>\n" +
+                "      <Amt>1.0926</Amt>\n" +
+                "    </CcyAmt>\n" +
+                "  </FxRate>\n" +
+                "  <FxRate>\n" +
+                "    <Tp>LT</Tp>\n" +
+                "    <Dt>2024-05-02</Dt>\n" +
+                "    <CcyAmt>\n" +
+                "      <Ccy>EUR</Ccy>\n" +
+                "      <Amt>1.0000</Amt>\n" +
+                "    </CcyAmt>\n" +
+                "    <CcyAmt>\n" +
+                "      <Ccy>USD</Ccy>\n" +
+                "      <Amt>1.0930</Amt>\n" +
+                "    </CcyAmt>\n" +
+                "  </FxRate>\n" +
+                "</FxRates>";
+
+        ExchangeRate exchangeRate1 = ExchangeRate.builder()
+                .currency(currency)
+                .rate(1.0926)
+                .date(LocalDate.of(2024, 5, 1))
+                .build();
+        ExchangeRate exchangeRate2 = ExchangeRate.builder()
+                .currency(currency)
+                .rate(1.0930)
+                .date(LocalDate.of(2024, 5, 2))
+                .build();
+
+        List<ExchangeRate> expectedExchangeRates = List.of(exchangeRate1, exchangeRate2);
+
+        when(mockHttpClient.send(any(HttpRequest.class), eq(HttpResponse.BodyHandlers.ofString())))
+                .thenReturn(mockHttpResponse);
+        when(mockHttpResponse.statusCode()).thenReturn(200);
+        when(mockHttpResponse.body()).thenReturn(xmlResponse);
+        when(mockCurrencyRepository.findAllByCodeIn(List.of("USD")))
+                .thenReturn(List.of(currency));
+
+        List<ExchangeRate> actualExchangeRates = exchangeRateProvider.fetchAllForCurrencyByDateBetween(currency,
+                fromDate, toDate);
+
+        assertEquals(expectedExchangeRates, actualExchangeRates);
+    }
+
+    @Test
+    void testFetchAllForCurrencyByDateBetween_Non200Response() throws Exception {
+        Currency currency = Currency.builder()
+                .id(1L)
+                .code("USD")
+                .name("United States dollar")
+                .minorUnits(2)
+                .build();
+        LocalDate fromDate = LocalDate.of(2024, 5, 1);
+        LocalDate toDate = LocalDate.of(2024, 5, 10);
+
         when(mockHttpClient.send(any(HttpRequest.class), eq(HttpResponse.BodyHandlers.ofString())))
                 .thenReturn(mockHttpResponse);
         when(mockHttpResponse.statusCode()).thenReturn(500);
 
         assertThrows(BadApiResponseException.class, () -> {
-            exchangeRateProvider.fetchAllByDate(LocalDate.now());
+            exchangeRateProvider.fetchAllForCurrencyByDateBetween(currency, fromDate, toDate);
         });
     }
 }

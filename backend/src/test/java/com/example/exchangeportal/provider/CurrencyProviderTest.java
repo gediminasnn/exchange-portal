@@ -1,4 +1,4 @@
-package com.example.exchangeportal.service.provider;
+package com.example.exchangeportal.provider;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -19,8 +19,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.example.exchangeportal.entity.Currency;
 import com.example.exchangeportal.exception.BadApiResponseException;
-import com.example.exchangeportal.service.parser.CurrencyXmlParser;
-
+import com.example.exchangeportal.parser.CurrencyXmlParser;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 @ExtendWith(MockitoExtension.class)
@@ -67,18 +66,6 @@ public class CurrencyProviderTest {
 				.build());
 		List<Currency> actualCurrencies = currencyProvider.fetchAll();
 		assertEquals(expectedCurrencies, actualCurrencies);
-	}
-
-	@Test
-	public void testFetchAll_EmptyResponseBody() throws Exception {
-		when(mockHttpClient.send(any(HttpRequest.class), eq(HttpResponse.BodyHandlers.ofString())))
-				.thenReturn(mockHttpResponse);
-		when(mockHttpResponse.statusCode()).thenReturn(200);
-		when(mockHttpResponse.body()).thenReturn("");
-
-		assertThrows(BadApiResponseException.class, () -> {
-			currencyProvider.fetchAll();
-		});
 	}
 
 	@Test

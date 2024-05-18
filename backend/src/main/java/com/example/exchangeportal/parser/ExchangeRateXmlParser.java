@@ -1,4 +1,4 @@
-package com.example.exchangeportal.service.parser;
+package com.example.exchangeportal.parser;
 
 import java.io.IOException;
 import java.time.LocalDate;

@@ -1,4 +1,4 @@
-package com.example.exchangeportal.service.parser;
+package com.example.exchangeportal.parser;
 
 import org.springframework.stereotype.Component;
 import org.w3c.dom.Document;

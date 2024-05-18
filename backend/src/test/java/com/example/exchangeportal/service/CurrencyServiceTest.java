@@ -1,10 +1,12 @@
 package com.example.exchangeportal.service;
 
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 
+import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -12,15 +14,17 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+
 import com.example.exchangeportal.entity.Currency;
+import com.example.exchangeportal.entity.ExchangeRate;
 import com.example.exchangeportal.exception.ApiException;
-import com.example.exchangeportal.exception.BadApiResponseException;
-import com.example.exchangeportal.exception.BadHttpClientRequestException;
-import com.example.exchangeportal.exception.FailedParsingException;
 import com.example.exchangeportal.exception.ParsingException;
+import com.example.exchangeportal.parser.CurrencyXmlParser;
+import com.example.exchangeportal.provider.CurrencyProvider;
 import com.example.exchangeportal.repository.CurrencyRepository;
-import com.example.exchangeportal.service.parser.CurrencyXmlParser;
-import com.example.exchangeportal.service.provider.CurrencyProvider;
 
 @SpringBootTest
 public class CurrencyServiceTest {
@@ -32,15 +36,10 @@ public class CurrencyServiceTest {
     private CurrencyProvider mockCurrencyProvider;
 
     @Mock
-    private CurrencyXmlParser mockCurrencyXmlParser;
+    private ExchangeRateService mockExchangeRateService;
 
     @InjectMocks
     private CurrencyService currencyService;
-
-    @BeforeEach
-    void setUp() {
-        MockitoAnnotations.openMocks(this);
-    }
 
     @Test
     void fetchAndSaveCurrenciesFromApi_Success()
@@ -61,41 +60,36 @@ public class CurrencyServiceTest {
     }
 
     @Test
-    void fetchAndSaveCurrenciesFromApi_BadHttpClientRequestExceptionThrown()
-            throws BadHttpClientRequestException, BadApiResponseException, FailedParsingException {
-        when(mockCurrencyProvider.fetchAll()).thenThrow(new BadHttpClientRequestException());
+    public void testGetCurrencyWithExchangeRates_Success() throws Exception {
+        Currency expectedCurrency = Currency.builder()
+                .id(1L)
+                .code("USD")
+                .name("US Dollar")
+                .minorUnits(2)
+                .build();
 
-        assertThrows(BadHttpClientRequestException.class, () -> {
-            currencyService.fetchAndSaveCurrenciesFromApi();
-        });
+        LocalDate fromDate = LocalDate.of(2024, 5, 1);
+        LocalDate toDate = LocalDate.of(2024, 5, 5);
 
-        verify(mockCurrencyProvider).fetchAll();
-        verifyNoInteractions(mockCurrencyRepository);
-    }
+        when(mockCurrencyRepository.findById(1L)).thenReturn(Optional.of(expectedCurrency));
 
-    @Test
-    void fetchAndSaveCurrenciesFromApi_BadApiResponseExceptionThrown()
-            throws BadHttpClientRequestException, BadApiResponseException, FailedParsingException {
-        when(mockCurrencyProvider.fetchAll()).thenThrow(new BadApiResponseException());
+        List<ExchangeRate> exchangeRates = Arrays.asList(
+                ExchangeRate.builder().id(1L).rate(1.23).date(fromDate).build(),
+                ExchangeRate.builder().id(2L).rate(1.24).date(LocalDate.of(2024, 5, 2)).build(),
+                ExchangeRate.builder().id(3L).rate(1.25).date(LocalDate.of(2024, 5, 3)).build(),
+                ExchangeRate.builder().id(4L).rate(1.14).date(LocalDate.of(2024, 5, 4)).build(),
+                ExchangeRate.builder().id(5L).rate(1.23).date(toDate).build());
 
-        assertThrows(BadApiResponseException.class, () -> {
-            currencyService.fetchAndSaveCurrenciesFromApi();
-        });
+        when(mockExchangeRateService.getAndPopulateMissingExchangeRatesForCurrency(
+                expectedCurrency,
+                fromDate,
+                toDate)).thenReturn(exchangeRates);
 
-        verify(mockCurrencyProvider).fetchAll();
-        verifyNoInteractions(mockCurrencyRepository);
-    }
+        Currency actualCurrency = currencyService.getCurrencyWithExchangeRates(
+                expectedCurrency.getId(),
+                fromDate,
+                toDate);
 
-    @Test
-    void fetchAndSaveCurrenciesFromApi_FailedParsingExceptionThrown()
-            throws BadHttpClientRequestException, BadApiResponseException, FailedParsingException {
-        when(mockCurrencyProvider.fetchAll()).thenThrow(new FailedParsingException());
-
-        assertThrows(FailedParsingException.class, () -> {
-            currencyService.fetchAndSaveCurrenciesFromApi();
-        });
-
-        verify(mockCurrencyProvider).fetchAll();
-        verifyNoInteractions(mockCurrencyRepository);
+        assertEquals(expectedCurrency, actualCurrency);
     }
 }

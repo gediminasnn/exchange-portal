@@ -45,4 +45,32 @@ public class ExchangeRateRepositoryTest {
 
         assertEquals(expectedExchangeRates, actualExchangeRates);
     }
+
+    @Test
+    public void findAllByCurrencyAndDateBetween_ShouldReturnExchangeRatesWithinDateRange() {
+        LocalDate today = LocalDate.now();
+        LocalDate startDate = today.minusDays(2);
+        LocalDate endDate = today.plusDays(2);
+        LocalDate yesterday = today.minusDays(1);
+        LocalDate tomorrow = today.plusDays(1);
+
+        Currency usd = Currency.builder().code("USD").name("United States Dollar").minorUnits(2).build();
+        entityManager.persist(usd);
+
+        ExchangeRate rateToday = ExchangeRate.builder().currency(usd).rate(1.1).date(today).build();
+        ExchangeRate rateYesterday = ExchangeRate.builder().currency(usd).rate(1.2).date(yesterday).build();
+        ExchangeRate rateTomorrow = ExchangeRate.builder().currency(usd).rate(1.3).date(tomorrow).build();
+        ExchangeRate rateOutsideRange = ExchangeRate.builder().currency(usd).rate(1.4).date(today.minusDays(3)).build();
+        entityManager.persist(rateToday);
+        entityManager.persist(rateYesterday);
+        entityManager.persist(rateTomorrow);
+        entityManager.persist(rateOutsideRange);
+        entityManager.flush();
+
+        List<ExchangeRate> expectedExchangeRates = List.of(rateToday, rateYesterday, rateTomorrow);
+        List<ExchangeRate> actualExchangeRates = exchangeRateRepository.findAllByCurrencyAndDateBetween(usd, startDate,
+                endDate);
+
+        assertEquals(expectedExchangeRates, actualExchangeRates);
+    }
 }

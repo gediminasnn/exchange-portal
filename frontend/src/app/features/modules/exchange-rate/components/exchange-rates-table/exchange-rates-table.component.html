@@ -12,7 +12,11 @@
       <td>{{ rate.currency.name }}</td>
       <td>{{ rate.rate }}</td>
       <td>{{ rate.date }}</td>
-      <td>Link</td>
+      <td>
+        <a [routerLink]="['/currency', rate.currency.id]">
+          Link
+        </a>
+      </td>
     </tr>
   </tbody>
 </table>

@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
-import { ExchangeRatesTableComponent } from './features/exchange-rates-table/exchange-rates-table.component';
+import { CurrencyHistoryPageComponent } from './features/modules/currency/pages/currency-history-page/currency-history-page.component';
+import { ExchangeRatesPageComponent } from './features/modules/exchange-rate/pages/exchange-rates-page/exchange-rates-page.component';
 
 export const routes: Routes = [
   {
@@ -9,7 +10,12 @@ export const routes: Routes = [
   },
   {
     path: 'exchange-rates',
-    component: ExchangeRatesTableComponent,
+    component: ExchangeRatesPageComponent,
     title: 'Exchange rates'
+  },
+  {
+    path: 'currency/:id',
+    component: CurrencyHistoryPageComponent,
+    title: 'Currency history chart'
   }
 ];

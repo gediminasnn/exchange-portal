@@ -1,8 +1,7 @@
-package com.example.exchangeportal.service.parser;
+package com.example.exchangeportal.parser;
 
 import com.example.exchangeportal.entity.Currency;
 import com.example.exchangeportal.exception.FailedParsingException;
-
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;

@@ -3,13 +3,11 @@ package com.example.exchangeportal.service;
 import com.example.exchangeportal.entity.Currency;
 import com.example.exchangeportal.entity.ExchangeRate;
 import com.example.exchangeportal.exception.ApiException;
-import com.example.exchangeportal.exception.BadApiResponseException;
-import com.example.exchangeportal.exception.BadHttpClientRequestException;
-import com.example.exchangeportal.exception.FailedParsingException;
 import com.example.exchangeportal.exception.ParsingException;
+import com.example.exchangeportal.parser.ExchangeRateXmlParser;
+import com.example.exchangeportal.provider.ExchangeRateProvider;
 import com.example.exchangeportal.repository.ExchangeRateRepository;
-import com.example.exchangeportal.service.parser.ExchangeRateXmlParser;
-import com.example.exchangeportal.service.provider.ExchangeRateProvider;
+import com.example.exchangeportal.util.DateUtils;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -19,10 +17,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.List;
+import java.util.ArrayList;
 
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -36,6 +35,9 @@ public class ExchangeRateServiceTest {
 
     @Mock
     private ExchangeRateXmlParser mockExchangeRateXmlParser;
+
+    @Mock
+    private DateUtils mockDateUtils;
 
     @InjectMocks
     private ExchangeRateService exchangeRateService;
@@ -69,41 +71,72 @@ public class ExchangeRateServiceTest {
     }
 
     @Test
-    void fetchAndSaveExchangeRatesFromApi_BadHttpClientRequestExceptionThrown()
-            throws BadHttpClientRequestException, BadApiResponseException, FailedParsingException {
-        when(mockExchangeRateProvider.fetchAllByDate(LocalDate.now())).thenThrow(new BadHttpClientRequestException());
+    void testGetAndPopulateMissingExchangeRatesForCurrency_NoMissingRates()
+            throws ApiException, ParsingException {
+        Currency currency = Currency.builder().code("USD").name("US Dollar").minorUnits(2).build();
+        LocalDate fromDate = LocalDate.of(2024, 5, 1);
+        LocalDate toDate = LocalDate.of(2024, 5, 3);
+        List<LocalDate> missingDates = new ArrayList<>();
 
-        assertThrows(BadHttpClientRequestException.class, () -> {
-            exchangeRateService.fetchAndSaveExchangeRatesFromApi();
-        });
+        List<ExchangeRate> existingRates = new ArrayList<>(Arrays.asList(
+                ExchangeRate.builder().currency(currency).rate(1.23).date(LocalDate.of(2024, 5, 1)).build(),
+                ExchangeRate.builder().currency(currency).rate(1.24).date(LocalDate.of(2024, 5, 2)).build(),
+                ExchangeRate.builder().currency(currency).rate(1.25).date(LocalDate.of(2024, 5, 3)).build()));
 
-        verify(mockExchangeRateProvider).fetchAllByDate(LocalDate.now());
-        verifyNoInteractions(mockExchangeRateRepository);
+        when(mockExchangeRateRepository.findAllByCurrencyAndDateBetween(currency, fromDate, toDate))
+                .thenReturn(existingRates);
+        when(mockDateUtils.findMissingDates(existingRates, fromDate, toDate)).thenReturn(missingDates);
+
+        List<ExchangeRate> expectedExchangeRates = existingRates;
+        expectedExchangeRates.addAll(existingRates);
+        expectedExchangeRates.sort((rate1, rate2) -> rate2.getDate().compareTo(rate1.getDate()));
+
+        List<ExchangeRate> actualExchangeRates = exchangeRateService
+                .getAndPopulateMissingExchangeRatesForCurrency(currency, fromDate, toDate);
+
+        assertEquals(expectedExchangeRates, actualExchangeRates);
+        verify(mockExchangeRateRepository).findAllByCurrencyAndDateBetween(currency, fromDate, toDate);
+        verifyNoMoreInteractions(mockExchangeRateProvider);
+        verifyNoMoreInteractions(mockExchangeRateRepository);
     }
 
     @Test
-    void fetchAndSaveExchangeRatesFromApi_BadApiResponseExceptionThrown()
-            throws BadHttpClientRequestException, BadApiResponseException, FailedParsingException {
-        when(mockExchangeRateProvider.fetchAllByDate(LocalDate.now())).thenThrow(new BadApiResponseException());
+    void testGetAndPopulateMissingExchangeRatesForCurrency_WithMissingRates()
+            throws ApiException, ParsingException {
+        Currency currency = Currency.builder().code("USD").name("US Dollar").minorUnits(2).build();
+        LocalDate fromDate = LocalDate.of(2024, 5, 1);
+        LocalDate toDate = LocalDate.of(2024, 5, 3);
+        List<LocalDate> missingDates = List.of(LocalDate.of(2024, 5, 2), toDate);
 
-        assertThrows(BadApiResponseException.class, () -> {
-            exchangeRateService.fetchAndSaveExchangeRatesFromApi();
-        });
+        List<ExchangeRate> existingRates = new ArrayList<>(Arrays.asList(
+                ExchangeRate.builder().currency(currency).rate(1.23).date(LocalDate.of(2024, 5, 1)).build()));
 
-        verify(mockExchangeRateProvider).fetchAllByDate(LocalDate.now());
-        verifyNoInteractions(mockExchangeRateRepository);
-    }
+        List<ExchangeRate> missingRates = new ArrayList<>(Arrays.asList(
+                ExchangeRate.builder().currency(currency).rate(1.24).date(LocalDate.of(2024, 5, 2)).build(),
+                ExchangeRate.builder().currency(currency).rate(1.25).date(LocalDate.of(2024, 5, 3)).build()));
 
-    @Test
-    void fetchAndSaveExchangeRatesFromApi_FailedParsingExceptionThrown()
-            throws BadHttpClientRequestException, BadApiResponseException, FailedParsingException {
-        when(mockExchangeRateProvider.fetchAllByDate(LocalDate.now())).thenThrow(new FailedParsingException());
+        List<ExchangeRate> allExchangeRates = new ArrayList<>(Arrays.asList(
+                ExchangeRate.builder().currency(currency).rate(1.23).date(LocalDate.of(2024, 5, 1)).build(),
+                ExchangeRate.builder().currency(currency).rate(1.24).date(LocalDate.of(2024, 5, 2)).build(),
+                ExchangeRate.builder().currency(currency).rate(1.25).date(LocalDate.of(2024, 5, 3)).build()));
 
-        assertThrows(FailedParsingException.class, () -> {
-            exchangeRateService.fetchAndSaveExchangeRatesFromApi();
-        });
+        when(mockExchangeRateRepository.findAllByCurrencyAndDateBetween(currency, fromDate, toDate))
+                .thenReturn(existingRates);
+        when(mockDateUtils.findMissingDates(existingRates, fromDate, toDate)).thenReturn(missingDates);
+        when(mockExchangeRateProvider.fetchAllForCurrencyByDateBetween(currency, fromDate, toDate))
+                .thenReturn(allExchangeRates);
 
-        verify(mockExchangeRateProvider).fetchAllByDate(LocalDate.now());
-        verifyNoInteractions(mockExchangeRateRepository);
+        List<ExchangeRate> expectedExchangeRates = new ArrayList<>();
+        expectedExchangeRates.addAll(existingRates);
+        expectedExchangeRates.addAll(missingRates);
+        expectedExchangeRates.sort((rate1, rate2) -> rate2.getDate().compareTo(rate1.getDate()));
+
+        List<ExchangeRate> actualExchangeRates = exchangeRateService
+                .getAndPopulateMissingExchangeRatesForCurrency(currency, fromDate, toDate);
+
+        assertEquals(expectedExchangeRates, actualExchangeRates);
+        verify(mockExchangeRateRepository).findAllByCurrencyAndDateBetween(currency, fromDate, toDate);
+        verify(mockExchangeRateProvider).fetchAllForCurrencyByDateBetween(currency, fromDate, toDate);
+        verify(mockExchangeRateRepository).saveAll(missingRates);
     }
 }

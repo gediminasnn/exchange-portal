@@ -1,4 +1,4 @@
-package com.example.exchangeportal.service.parser;
+package com.example.exchangeportal.parser;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -9,6 +9,7 @@ import com.example.exchangeportal.exception.FailedParsingException;
 import com.example.exchangeportal.repository.CurrencyRepository;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.ArrayList;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;

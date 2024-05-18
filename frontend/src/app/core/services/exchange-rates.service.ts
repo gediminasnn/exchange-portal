@@ -13,8 +13,6 @@ export class ExchangeRatesService {
   constructor(private http: HttpClient) { }
 
   fetchAll(): Observable<ExchangeRates[]> {
-    const rates = this.http.get<ExchangeRates[]>(this.apiUrl);
-    console.log(rates);
-    return rates;
+    return this.http.get<ExchangeRates[]>(this.apiUrl);
   }
 }
