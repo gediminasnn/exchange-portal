@@ -2,9 +2,7 @@ package com.example.exchangeportal.controller;
 
 import com.example.exchangeportal.entity.Currency;
 import com.example.exchangeportal.entity.ExchangeRate;
-import com.example.exchangeportal.repository.CurrencyRepository;
 import com.example.exchangeportal.service.CurrencyService;
-import com.example.exchangeportal.service.ExchangeRateService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.junit.jupiter.api.Test;

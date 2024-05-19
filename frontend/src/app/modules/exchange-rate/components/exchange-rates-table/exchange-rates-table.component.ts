@@ -1,8 +1,8 @@
 import { Component, Input } from '@angular/core';
-import { ExchangeRatesService } from '../../../../../core/services/exchange-rates.service';
+import { ExchangeRatesService } from '../../../../core/services/exchange-rates.service';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
-import ExchangeRates from '../../../../../core/models/exchange-rates.model';
+import ExchangeRates from '../../../../core/models/exchange-rates.model';
 
 @Component({
   selector: 'app-exchange-rates-table',

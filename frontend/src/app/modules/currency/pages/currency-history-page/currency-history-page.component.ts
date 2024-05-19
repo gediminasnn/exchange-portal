@@ -3,9 +3,9 @@ import { CurrencyHistoryChartComponent } from '../../components/currency-history
 import { CanvasJSAngularChartsModule } from '@canvasjs/angular-charts';
 import { Subscription } from 'rxjs';
 import { ActivatedRoute } from '@angular/router';
-import { CurrencyService } from '../../../../../core/services/currency.service';
-import Currency from '../../../../../core/models/currency.model';
-import { NgbdDatepickerRangePopup } from '../../../../../shared/ngbd-datepicker-range-popup/ngbd-datepicker-range-popup.component';
+import { CurrencyService } from '../../../../core/services/currency.service';
+import Currency from '../../../../core/models/currency.model';
+import { NgbdDatepickerRangePopup } from '../../../../shared/ngbd-datepicker-range-popup/ngbd-datepicker-range-popup.component';
 
 @Component({
   selector: 'app-currency-history-page',

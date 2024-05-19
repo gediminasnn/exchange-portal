@@ -1,0 +1,44 @@
+<form [formGroup]="calculatorForm" (ngSubmit)="onCalculate()">
+  <table class="table table-bordered">
+    <thead>
+      <tr>
+        <th scope="col">Field</th>
+        <th scope="col">Description</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>From Currency</td>
+        <td>
+          <select class="form-control" formControlName="fromCurrency">
+            <option *ngFor="let rate of exchangeRates" [value]="rate.currency.code">
+              {{ rate.currency.name }} ({{ rate.currency.code }})
+            </option>
+          </select>
+        </td>
+      </tr>
+      <tr>
+        <td>Amount</td>
+        <td><input type="number" class="form-control" formControlName="amount" placeholder="Enter amount"></td>
+      </tr>
+      <tr>
+        <td>To Currency</td>
+        <td>
+          <select class="form-control" formControlName="toCurrency">
+            <option *ngFor="let rate of exchangeRates" [value]="rate.currency.code">
+              {{ rate.currency.name }} ({{ rate.currency.code }})
+            </option>
+          </select>
+        </td>
+      </tr>
+      <tr>
+        <td>Calculated Amount</td>
+        <td><input type="text" class="form-control" [value]="calculatedAmount" readonly></td>
+      </tr>
+      <tr>
+        <td>Calculated Exchange Rate</td>
+        <td><input type="text" class="form-control" [value]="calculatedRate" readonly></td>
+      </tr>
+    </tbody>
+  </table>
+</form>

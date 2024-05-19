@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { ExchangeRatesTableComponent } from '../../components/exchange-rates-table/exchange-rates-table.component';
-import ExchangeRates from '../../../../../core/models/exchange-rates.model';
-import { ExchangeRatesService } from '../../../../../core/services/exchange-rates.service';
+import ExchangeRates from '../../../../core/models/exchange-rates.model';
+import { ExchangeRatesService } from '../../../../core/services/exchange-rates.service';
 
 @Component({
   selector: 'app-exchange-rates-page',

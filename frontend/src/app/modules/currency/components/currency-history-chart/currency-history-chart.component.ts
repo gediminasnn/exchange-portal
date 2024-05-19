@@ -2,8 +2,8 @@ import { Component, Input, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterOutlet } from '@angular/router';
 import { CanvasJSAngularChartsModule } from '@canvasjs/angular-charts';
-import Currency from '../../../../../core/models/currency.model';
-import { NgbdDatepickerRangePopup } from '../../../../../shared/ngbd-datepicker-range-popup/ngbd-datepicker-range-popup.component';
+import Currency from '../../../../core/models/currency.model';
+import { NgbdDatepickerRangePopup } from '../../../../shared/ngbd-datepicker-range-popup/ngbd-datepicker-range-popup.component';
 
 @Component({
   selector: 'currency-history-chart',

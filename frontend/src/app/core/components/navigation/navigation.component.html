@@ -1,8 +1,11 @@
 <nav class="navbar navbar-expand bg-light">
-  <a class="navbar-brand" routerLink="/exchange-rates/" (click)="nav.select(1)">Exchange Portal</a>
-  <ul ngbNav #nav="ngbNav" class="navbar-nav">
+  <a class="navbar-brand" routerLink="/exchange-rates" (click)="activeId = 1">Exchange Portal</a>
+  <ul ngbNav #nav="ngbNav" class="navbar-nav" [(activeId)]="activeId">
     <li [ngbNavItem]="1">
-      <a ngbNavLink routerLink="/exchange-rates/" [fragment]="">Rates</a>
+      <a ngbNavLink routerLink="/exchange-rates" [fragment]="">Rates</a>
+    </li>
+    <li [ngbNavItem]="2">
+      <a ngbNavLink routerLink="/calculator" [fragment]="">Calculator</a>
     </li>
   </ul>
 </nav>

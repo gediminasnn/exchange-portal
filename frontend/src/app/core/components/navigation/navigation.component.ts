@@ -10,5 +10,29 @@ import { NgbNavModule } from '@ng-bootstrap/ng-bootstrap';
   styleUrl: './navigation.component.scss'
 })
 export class NavigationComponent {
-  constructor(public route: ActivatedRoute) {}
+  activeId: number = 1;
+
+  constructor(private router: Router, private route: ActivatedRoute) {}
+
+  ngOnInit() {
+    this.setActiveTab(this.router.url);
+
+    this.router.events.subscribe(() => {
+      this.setActiveTab(this.router.url);
+    });
+  }
+
+  private setActiveTab(url: string) {
+    if (url.includes('/exchange-rates')) {
+      this.activeId = 1;
+    }
+
+    if (url.includes('/calculator')) {
+      this.activeId = 2;
+    }
+
+    if (url.includes('/currency')) {
+      this.activeId = 1;
+    }
+  }
 }

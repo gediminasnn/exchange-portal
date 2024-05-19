@@ -23,12 +23,14 @@ public class GlobalExceptionHandlerController {
 
     @ExceptionHandler(ApiException.class)
     public ResponseEntity<String> handleApiException(ApiException e) {
+        logger.error("Internal server error occurred: " + e.getMessage(), e);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body("Internal server error");
     }
 
     @ExceptionHandler(ParsingException.class)
     public ResponseEntity<String> handleParsingException(ParsingException e) {
+        logger.error("Internal server error occurred: " + e.getMessage(), e);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body("Internal server error");
     }

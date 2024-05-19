@@ -8,21 +8,14 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.MediaType;
-import org.springframework.test.web.servlet.MvcResult;
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-
 import com.example.exchangeportal.entity.Currency;
 import com.example.exchangeportal.entity.ExchangeRate;
 import com.example.exchangeportal.exception.ApiException;
 import com.example.exchangeportal.exception.ParsingException;
-import com.example.exchangeportal.parser.CurrencyXmlParser;
 import com.example.exchangeportal.provider.CurrencyProvider;
 import com.example.exchangeportal.repository.CurrencyRepository;
 
