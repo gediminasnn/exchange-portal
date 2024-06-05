@@ -1,10 +1,13 @@
 package com.example.exchangeportal.service;
 
 import java.time.LocalDate;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
+import org.modelmapper.ModelMapper;
+import com.example.exchangeportal.dto.CurrencyDto;
+import com.example.exchangeportal.dto.ExchangeRateDto;
 import com.example.exchangeportal.entity.Currency;
 import com.example.exchangeportal.exception.ApiException;
 import com.example.exchangeportal.exception.ParsingException;
@@ -22,17 +25,25 @@ public class CurrencyService {
     @Autowired
     private ExchangeRateService exchangeRateService;
 
+    @Autowired
+    private ModelMapper modelMapper;
+
     public void fetchAndSaveCurrenciesFromApi() throws ApiException, ParsingException {
         currencyRepository.saveAll(currencyProvider.fetchAll());
     }
 
-    public Currency getCurrencyWithExchangeRates(Long id, LocalDate fromDate, LocalDate toDate) throws ApiException, ParsingException {
+    public CurrencyDto getCurrencyWithExchangeRates(Long id, LocalDate fromDate, LocalDate toDate)
+            throws ApiException, ParsingException {
         Currency currency = currencyRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Couldn't find currency with id: " + id));
 
-        currency.setExchangeRates(exchangeRateService.getAndPopulateMissingExchangeRatesForCurrency(
-                currency, fromDate, toDate));
+        List<ExchangeRateDto> exchangeRateDtos = exchangeRateService.getAndPopulateMissingExchangeRatesForCurrency(
+                currency, fromDate, toDate);
 
-        return currency;
+        CurrencyDto currencyDto = modelMapper.map(currency, CurrencyDto.class);
+
+        currencyDto.setExchangeRates(exchangeRateDtos);
+
+        return currencyDto;
     }
 }

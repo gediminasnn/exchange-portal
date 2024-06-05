@@ -39,10 +39,11 @@ public class Currency {
     private List<ExchangeRate> exchangeRates;
 
     @Builder
-    public Currency(Long id, String code, String name, int minorUnits) {
+    public Currency(Long id, String code, String name, int minorUnits, List<ExchangeRate> exchangeRates) {
         this.id = id;
         this.code = code;
         this.name = name;
         this.minorUnits = minorUnits;
+        this.exchangeRates = exchangeRates;
     }
 }

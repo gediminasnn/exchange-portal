@@ -1,30 +1,24 @@
 package com.example.exchangeportal.controller;
 
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.bind.annotation.RestController;
-
-import com.example.exchangeportal.entity.ExchangeRate;
+import org.springframework.web.bind.annotation.*;
+import com.example.exchangeportal.dto.ExchangeRateDto;
 import com.example.exchangeportal.service.ExchangeRateService;
-
-import java.util.List;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.http.ResponseEntity;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/exchange-rates")
 @CrossOrigin(origins = "*")
-@ResponseStatus(HttpStatus.OK)
 public class ExchangeRateController {
 
     @Autowired
     private ExchangeRateService exchangeRateService;
 
     @GetMapping
-    public List<ExchangeRate> show() {
-        return exchangeRateService.getLatestExchangeRates();
+    public ResponseEntity<List<ExchangeRateDto>> show() {
+        List<ExchangeRateDto> exchangeRateDtos = exchangeRateService.getLatestExchangeRates();
+        return new ResponseEntity<>(exchangeRateDtos, HttpStatus.OK);
     }
 }

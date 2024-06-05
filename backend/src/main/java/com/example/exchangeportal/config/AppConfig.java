@@ -1,5 +1,6 @@
 package com.example.exchangeportal.config;
 
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
@@ -22,5 +23,10 @@ public class AppConfig {
 		schedulerFactoryBean.setJobFactory(jobFactory);
 
 		return schedulerFactoryBean;
+	}
+
+	@Bean
+	ModelMapper modelMapper() {
+		return new ModelMapper();
 	}
 }

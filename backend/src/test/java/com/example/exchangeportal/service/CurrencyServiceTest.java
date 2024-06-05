@@ -8,35 +8,46 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import com.example.exchangeportal.dto.CurrencyDto;
+import com.example.exchangeportal.dto.ExchangeRateDto;
 import com.example.exchangeportal.entity.Currency;
-import com.example.exchangeportal.entity.ExchangeRate;
 import com.example.exchangeportal.exception.ApiException;
 import com.example.exchangeportal.exception.ParsingException;
 import com.example.exchangeportal.provider.CurrencyProvider;
 import com.example.exchangeportal.repository.CurrencyRepository;
+import org.modelmapper.ModelMapper;
 
 @SpringBootTest
 public class CurrencyServiceTest {
 
-    @Mock
+    @MockBean
     private CurrencyRepository mockCurrencyRepository;
 
-    @Mock
+    @MockBean
     private CurrencyProvider mockCurrencyProvider;
 
-    @Mock
+    @MockBean
     private ExchangeRateService mockExchangeRateService;
 
-    @InjectMocks
+    @MockBean
+    private ModelMapper mockModelMapper;
+
+    @Autowired
     private CurrencyService currencyService;
 
+    @BeforeEach
+    void setUp() {
+        Mockito.reset(mockCurrencyRepository, mockCurrencyProvider);
+    }
+
     @Test
-    void fetchAndSaveCurrenciesFromApi_Success()
-            throws ApiException, ParsingException {
+    void fetchAndSaveCurrenciesFromApi_Success() throws ApiException, ParsingException {
         List<Currency> currencies = Arrays.asList(Currency.builder()
                 .id(1L)
                 .code("USD")
@@ -66,23 +77,30 @@ public class CurrencyServiceTest {
 
         when(mockCurrencyRepository.findById(1L)).thenReturn(Optional.of(expectedCurrency));
 
-        List<ExchangeRate> exchangeRates = Arrays.asList(
-                ExchangeRate.builder().id(1L).rate(1.23).date(fromDate).build(),
-                ExchangeRate.builder().id(2L).rate(1.24).date(LocalDate.of(2024, 5, 2)).build(),
-                ExchangeRate.builder().id(3L).rate(1.25).date(LocalDate.of(2024, 5, 3)).build(),
-                ExchangeRate.builder().id(4L).rate(1.14).date(LocalDate.of(2024, 5, 4)).build(),
-                ExchangeRate.builder().id(5L).rate(1.23).date(toDate).build());
+        List<ExchangeRateDto> exchangeRatesDtos = Arrays.asList(
+                ExchangeRateDto.builder().rate(1.23).date(fromDate).build(),
+                ExchangeRateDto.builder().rate(1.24).date(LocalDate.of(2024, 5, 2)).build(),
+                ExchangeRateDto.builder().rate(1.25).date(LocalDate.of(2024, 5, 3)).build(),
+                ExchangeRateDto.builder().rate(1.14).date(LocalDate.of(2024, 5, 4)).build(),
+                ExchangeRateDto.builder().rate(1.23).date(toDate).build());
 
         when(mockExchangeRateService.getAndPopulateMissingExchangeRatesForCurrency(
                 expectedCurrency,
                 fromDate,
-                toDate)).thenReturn(exchangeRates);
+                toDate)).thenReturn(exchangeRatesDtos);
 
-        Currency actualCurrency = currencyService.getCurrencyWithExchangeRates(
-                expectedCurrency.getId(),
+        CurrencyDto expectedCurrencyDto = CurrencyDto.builder()
+                .id(1L).code("USD").name("US Dollar").build();
+
+        when(mockModelMapper.map(expectedCurrency, CurrencyDto.class)).thenReturn(expectedCurrencyDto);
+
+        CurrencyDto actualCurrencyDto = currencyService.getCurrencyWithExchangeRates(
+                1L,
                 fromDate,
                 toDate);
 
-        assertEquals(expectedCurrency, actualCurrency);
+        expectedCurrencyDto.setExchangeRates(exchangeRatesDtos);
+
+        assertEquals(expectedCurrencyDto, actualCurrencyDto);
     }
 }
