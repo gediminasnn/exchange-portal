@@ -15,9 +15,9 @@ Before proceeding with the setup, ensure you have the following installed on you
     
     First, clone the repository to your local machine. Open a terminal and run the following command:
     
-    `git clone git@github.com:gediminasnn/exchange-portal.git` 
+    `git clone git@github.com:gediminasnn/springboot.angular.exchange-portal.git` 
     
-    (Optional) Replace `git@github.com:gediminasnn/exchange-portal.git` with the desired URL of the repository.
+    (Optional) Replace `git@github.com:gediminasnn/springboot.angular.exchange-portal.git` with the desired URL of the repository.
 
 1.  **Navigate to the Application Directory**
     
